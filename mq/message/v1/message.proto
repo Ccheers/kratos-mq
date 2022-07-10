@@ -1,0 +1,13 @@
+syntax = "proto3";
+package pkg.mq.message.v1;
+
+option go_package = "github.com/Ccheers/kratos-mq/mq/message/v1;v1";
+
+
+message Message {
+  bytes data = 1;
+  map<string, string>  md = 2;
+  string error = 3;
+  string key = 4;
+  uint32 valid_sum = 5; // 校验和 验证消息合法性
+}

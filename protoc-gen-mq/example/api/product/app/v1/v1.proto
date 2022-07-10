@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option go_package = "github.com/Ccheers/kratos-mq/protoc-gen-gin/example/api/product/app/v1";
+
+package product.app.v1;
+
+import "google/api/annotations.proto";
+
+// blog service is a blog demo
+service BlogService {
+	// 获取文章列表
+	rpc GetArticles(GetArticlesReq) returns (GetArticlesResp) {
+		option (google.api.http) = {
+			get: "/v1/articles"
+			additional_bindings {
+				get: "/v1/author/{author_id}/articles"
+			}
+		};
+	}
+	// 创建文章
+	// @mq: blog::ch1
+	rpc CreateArticle(Article) returns (Article) {
+		option (google.api.http) = {
+			post: "/v1/author/{author_id}/articles"
+			body: "*"
+		};
+	}
+}
+
+message GetArticlesReq {
+	// @inject_tag: form:"title"
+	string title = 1;
+
+	// @inject_tag: form:"page"
+	int32 page = 2;
+
+	// @inject_tag: form:"page_size"
+	int32 page_size = 3;
+
+    // 作者名
+	// @inject_tag: form:"author_id" uri:"author_id"
+	int32 author_id = 4;
+}
+
+message GetArticlesResp {
+	int64 total = 1;
+	repeated Article articles = 2;
+}
+
+message Article {
+	string title  = 1;
+	string content = 2;
+	// @inject_tag: form:"author_id" uri:"author_id"
+	int32 author_id = 3;
+}
