@@ -9,7 +9,13 @@ import (
 	v1 "github.com/Ccheers/kratos-mq/protoc-gen-gin/example/api/product/app/v1"
 )
 
-type service struct {
+type service struct{}
+
+func (s service) MQ_CreateArticle(ctx context.Context, article *v1.Article) error {
+	if article.AuthorId < 1 {
+		return ecode.Errorf(http.StatusBadRequest, 400, "author id must > 0")
+	}
+	return nil
 }
 
 func (s service) CreateArticle(ctx context.Context, article *v1.Article) (*v1.Article, error) {

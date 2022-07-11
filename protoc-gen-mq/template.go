@@ -82,7 +82,7 @@ func generateServerInterface(g *protogen.GeneratedFile, s *service) {
 	g.P("// ", s.Comment)
 	g.P("type ", s.ServerInterfaceName(), " interface {")
 	for _, m := range s.MethodSet {
-		g.P("\t", m.Name, "(", contextPkg.Ident("Context"), ", *", m.Request, ") error")
+		g.P("\t", generateServerMethodName(m.Name), "(", contextPkg.Ident("Context"), ", *", m.Request, ") error")
 	}
 	g.P("}")
 }
@@ -94,6 +94,10 @@ func generateServerRegisterFunc(g *protogen.GeneratedFile, s *service) {
 		g.P("\t", "svr.Subscriber(", contextPkg.Ident("Background()"), ", \"", m.Topic, "\", \"", m.Channel, "\", ", m.HandlerName(), "(svr,srv))")
 	}
 	g.P("}")
+}
+
+func generateServerMethodName(name string) string {
+	return fmt.Sprintf("MQ_%s", name)
 }
 
 // generateServerMethodList 函数列表
@@ -137,7 +141,7 @@ func generateServerMethodList(g *protogen.GeneratedFile, s *service) {
 			g.P("")
 
 			g.P("handler := func(ctx ", contextPkg.Ident("Context"), ", req interface{}) (interface{}, error) {")
-			g.P("err := srv.", m.Name, "(ctx, req.(*", m.Request, "))")
+			g.P("err := srv.", generateServerMethodName(m.Name), "(ctx, req.(*", m.Request, "))")
 			g.P("return nil, err")
 			g.P("}")
 			g.P("")

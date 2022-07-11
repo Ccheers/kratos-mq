@@ -46,8 +46,11 @@ func (m *method) HandlerName() string {
 
 // matchMQReg 匹配 mq tag @mq: topic::channel
 var matchMQReg = regexp.MustCompile("@mq:`.+?`")
-var matchTopicReg = regexp.MustCompile("topic\\s*:\\s*\"([\\w\\\\.]+)\"")
-var matchChannelReg = regexp.MustCompile("channel\\s*:\\s*\"([\\w\\\\.]+)\"")
+
+var (
+	matchTopicReg   = regexp.MustCompile("topic\\s*:\\s*\"([\\w\\\\.]+)\"")
+	matchChannelReg = regexp.MustCompile("channel\\s*:\\s*\"([\\w\\\\.]+)\"")
+)
 
 func genMethod(m *protogen.Method, g *protogen.GeneratedFile) []*method {
 	var methods []*method

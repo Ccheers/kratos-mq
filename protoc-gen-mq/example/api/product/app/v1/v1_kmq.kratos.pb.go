@@ -14,7 +14,7 @@ import (
 
 // blog service is a blog demo
 type BlogServiceMQServer interface {
-	CreateArticle(context.Context, *Article) error
+	MQ_CreateArticle(context.Context, *Article) error
 }
 
 func RegisterBlogServiceMQServer(svr *mq.Server, srv BlogServiceMQServer) {
@@ -44,7 +44,7 @@ func CreateArticle_0_MQHandler(svr *mq.Server, srv BlogServiceMQServer) mq.Handl
 		ms := mq.GetMiddlewareFromContext(ctx)
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-			err := srv.CreateArticle(ctx, req.(*Article))
+			err := srv.MQ_CreateArticle(ctx, req.(*Article))
 			return nil, err
 		}
 
@@ -79,7 +79,7 @@ func CreateArticle_1_MQHandler(svr *mq.Server, srv BlogServiceMQServer) mq.Handl
 		ms := mq.GetMiddlewareFromContext(ctx)
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-			err := srv.CreateArticle(ctx, req.(*Article))
+			err := srv.MQ_CreateArticle(ctx, req.(*Article))
 			return nil, err
 		}
 
