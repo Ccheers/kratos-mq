@@ -4,8 +4,6 @@ import (
 	"context"
 )
 
-type ClientOptionFunc func(*clientOptions)
-
 type clientOptions struct {
 	encodeFunc EncodeFunc
 }

@@ -25,7 +25,8 @@ type BlogServiceClient interface {
 	// 获取文章列表
 	GetArticles(ctx context.Context, in *GetArticlesReq, opts ...grpc.CallOption) (*GetArticlesResp, error)
 	// 创建文章
-	// @mq: blog::ch1
+	// @mq:`topic:"tp1" channel:"ch1"`
+	// @mq:`topic:"tp2" channel:"ch2"`
 	CreateArticle(ctx context.Context, in *Article, opts ...grpc.CallOption) (*Article, error)
 }
 
@@ -62,7 +63,8 @@ type BlogServiceServer interface {
 	// 获取文章列表
 	GetArticles(context.Context, *GetArticlesReq) (*GetArticlesResp, error)
 	// 创建文章
-	// @mq: blog::ch1
+	// @mq:`topic:"tp1" channel:"ch1"`
+	// @mq:`topic:"tp2" channel:"ch2"`
 	CreateArticle(context.Context, *Article) (*Article, error)
 	mustEmbedUnimplementedBlogServiceServer()
 }

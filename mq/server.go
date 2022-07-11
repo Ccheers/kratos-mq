@@ -8,9 +8,10 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware"
 )
 
-type ServerOptionFunc func(*serverOptions)
-
 type serverOptions struct {
+	// meta
+	serverName string
+
 	// 配置
 	timeout time.Duration
 
@@ -20,7 +21,6 @@ type serverOptions struct {
 	errHandler ErrorHandler
 
 	// routine pool config
-	serverName     string
 	cap            int32
 	scaleThreshold int32 // 阈值 任务队列长度超过 这个数字 则会增加 go routine
 }
@@ -42,12 +42,16 @@ func NewServer(consumer Consumer, opts ...ServerOptionFunc) *Server {
 	for _, f := range opts {
 		f(options)
 	}
+	pool := routinepool.NewPool(options.serverName, options.cap, &routinepool.Config{
+		ScaleThreshold: options.scaleThreshold,
+	})
+	pool.SetPanicHandler(func(ctx context.Context, err error) {
+		options.errHandler(err)
+	})
 	return &Server{
 		consumer: consumer,
 		options:  *options,
-		pool: routinepool.NewPool(options.serverName, options.cap, &routinepool.Config{
-			ScaleThreshold: options.scaleThreshold,
-		}),
+		pool:     pool,
 	}
 }
 
@@ -66,22 +70,24 @@ func (x *Server) Subscriber(ctx context.Context, topic string, channel string, h
 	if err != nil {
 		return err
 	}
-	_ctx, cancel := context.WithTimeout(context.Background(), x.options.timeout)
-	_ctx = MiddlewareWithContext(_ctx, append(x.options.ms, ms...)...)
-	x.pool.CtxGo(_ctx, func(ctx context.Context) {
-		defer cancel()
-		var msg Message
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case msg = <-ch:
-				handler.Handle(ctx, msg)
-			default:
-				time.Sleep(time.Second)
+	for i := 0; i < int(x.options.cap); i++ {
+		_ctx := MiddlewareWithContext(ctx, append(x.options.ms, ms...)...)
+		x.pool.CtxGo(_ctx, func(ctx context.Context) {
+			var msg Message
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case msg = <-ch:
+					ctx, cancel := context.WithTimeout(ctx, x.options.timeout)
+					handler.Handle(ctx, msg)
+					cancel()
+				default:
+					time.Sleep(time.Second)
+				}
 			}
-		}
-	})
+		})
+	}
 	return nil
 }
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
@@ -66,33 +68,38 @@ func genService(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 	// 生成接口
 	generateServerInterface(g, sd)
 	// 生成注册函数
-	generateRegisterFunc(g, sd)
+	generateServerRegisterFunc(g, sd)
 	// 生成函数列表
-	generateMethodList(g, sd)
+	generateServerMethodList(g, sd)
+	// 生成接口
+	generateClientInterface(g, sd)
+	// 生成函数列表
+	generateClientMethodList(g, sd)
 }
 
 // 生成接口
 func generateServerInterface(g *protogen.GeneratedFile, s *service) {
 	g.P("// ", s.Comment)
-	g.P("type ", s.InterfaceName(), " interface {")
+	g.P("type ", s.ServerInterfaceName(), " interface {")
 	for _, m := range s.MethodSet {
-		g.P("\t", m.Name, "(", contextPkg.Ident("Context"), ", *", m.Request, ") (*", m.Reply, ", error)")
+		g.P("\t", m.Name, "(", contextPkg.Ident("Context"), ", *", m.Request, ") error")
 	}
 	g.P("}")
 }
 
 // 生成注册函数
-func generateRegisterFunc(g *protogen.GeneratedFile, s *service) {
-	g.P("func Register", s.InterfaceName(), "(svr *", kMQPkg.Ident("Server"), ", srv ", s.InterfaceName(), ") {")
+func generateServerRegisterFunc(g *protogen.GeneratedFile, s *service) {
+	g.P("func Register", s.ServerInterfaceName(), "(svr *", kMQPkg.Ident("Server"), ", srv ", s.ServerInterfaceName(), ") {")
 	for _, m := range s.Methods {
 		g.P("\t", "svr.Subscriber(", contextPkg.Ident("Background()"), ", \"", m.Topic, "\", \"", m.Channel, "\", ", m.HandlerName(), "(svr,srv))")
 	}
 	g.P("}")
 }
 
-func generateMethodList(g *protogen.GeneratedFile, s *service) {
+// generateServerMethodList 函数列表
+func generateServerMethodList(g *protogen.GeneratedFile, s *service) {
 	for _, m := range s.Methods {
-		g.P("func ", m.HandlerName(), "(svr *", kMQPkg.Ident("Server"), ", srv ", s.InterfaceName(), ") ", kMQPkg.Ident("HandleFunc"), " {")
+		g.P("func ", m.HandlerName(), "(svr *", kMQPkg.Ident("Server"), ", srv ", s.ServerInterfaceName(), ") ", kMQPkg.Ident("HandleFunc"), " {")
 		g.P("return func(ctx ", contextPkg.Ident("Context"), ", message ", kMQPkg.Ident("Message"), ") {")
 		g.P("")
 
@@ -130,7 +137,8 @@ func generateMethodList(g *protogen.GeneratedFile, s *service) {
 			g.P("")
 
 			g.P("handler := func(ctx ", contextPkg.Ident("Context"), ", req interface{}) (interface{}, error) {")
-			g.P("return srv.", m.Name, "(ctx, req.(*", m.Request, "))")
+			g.P("err := srv.", m.Name, "(ctx, req.(*", m.Request, "))")
+			g.P("return nil, err")
 			g.P("}")
 			g.P("")
 		}
@@ -144,6 +152,37 @@ func generateMethodList(g *protogen.GeneratedFile, s *service) {
 			g.P("")
 		}
 		g.P("}")
+		g.P("}")
+	}
+}
+
+// 生成接口
+func generateClientInterface(g *protogen.GeneratedFile, s *service) {
+	g.P("type ", s.ClientInterfaceName(), " interface {")
+	for _, m := range s.Methods {
+		g.P("\t", fmt.Sprintf("%s_%s", m.Name, m.Topic), "(", contextPkg.Ident("Context"), ", *", m.Request, ") error")
+	}
+	g.P("}")
+}
+
+// generateClientMethodList 函数列表
+func generateClientMethodList(g *protogen.GeneratedFile, s *service) {
+	// 客户端接口定义
+	clientStructName := fmt.Sprintf("%sImpl", s.ClientInterfaceName())
+	{
+		g.P("type ", clientStructName, " struct {")
+		g.P("\t", "cc *", kMQPkg.Ident("Client"))
+		g.P("}")
+	}
+	// 构造函数
+	g.P("func ", fmt.Sprintf("New%s", s.ClientInterfaceName()), "(cc *", kMQPkg.Ident("Client"), ") ", s.ClientInterfaceName(), " {")
+	g.P("\t", "return &", clientStructName, "{cc: cc}")
+	g.P("}")
+
+	// 函数列表
+	for _, m := range s.Methods {
+		g.P(fmt.Sprintf("func (x *%s)", clientStructName), fmt.Sprintf("%s_%s", m.Name, m.Topic), "(ctx ", contextPkg.Ident("Context"), ", req *", m.Request, ") error {")
+		g.P("return x.cc.Invoke(ctx, \"", m.Topic, "\", req)")
 		g.P("}")
 	}
 }

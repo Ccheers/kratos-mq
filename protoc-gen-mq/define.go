@@ -18,9 +18,14 @@ type service struct {
 	MethodSet map[string]*method
 }
 
-// InterfaceName service interface name
-func (s *service) InterfaceName() string {
+// ServerInterfaceName server interface name
+func (s *service) ServerInterfaceName() string {
 	return s.Name + "MQServer"
+}
+
+// ClientInterfaceName client interface name
+func (s *service) ClientInterfaceName() string {
+	return s.Name + "MQClient"
 }
 
 type method struct {
@@ -40,17 +45,17 @@ func (m *method) HandlerName() string {
 }
 
 // matchMQReg 匹配 mq tag @mq: topic::channel
-var matchMQReg = regexp.MustCompile("@mq:\\s*([\\w\\\\.]+)::([\\w\\\\.]+)")
+var matchMQReg = regexp.MustCompile("@mq:`.+?`")
+var matchTopicReg = regexp.MustCompile("topic\\s*:\\s*\"([\\w\\\\.]+)\"")
+var matchChannelReg = regexp.MustCompile("channel\\s*:\\s*\"([\\w\\\\.]+)\"")
 
 func genMethod(m *protogen.Method, g *protogen.GeneratedFile) []*method {
 	var methods []*method
 
 	mqs := matchMQReg.FindAllString(m.Comments.Leading.String(), -1)
 	for _, str := range mqs {
-		str = str[4:]
-		s := strings.Split(str, "::")
-		topic := strings.TrimSpace(s[0])
-		channel := strings.TrimSpace(s[1])
+		topic := strings.TrimSpace(matchTopicReg.ReplaceAllString(matchTopicReg.FindString(str), "$1"))
+		channel := strings.TrimSpace(matchChannelReg.ReplaceAllString(matchChannelReg.FindString(str), "$1"))
 		methods = append(methods, buildMethodDesc(m, g, topic, channel))
 	}
 	return methods

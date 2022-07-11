@@ -18,7 +18,8 @@ service BlogService {
 		};
 	}
 	// 创建文章
-	// @mq: blog::ch1
+	// @mq:`topic:"tp1" channel:"ch1"`
+	// @mq:`topic:"tp2" channel:"ch2"`
 	rpc CreateArticle(Article) returns (Article) {
 		option (google.api.http) = {
 			post: "/v1/author/{author_id}/articles"
