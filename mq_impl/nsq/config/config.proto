@@ -1,0 +1,13 @@
+syntax = "proto3";
+package pkg.mq.nsq.config;
+
+option go_package = "github.com/Ccheers/kratos-mq/mq_impl/nsq/config;config";
+
+message Config {
+  repeated string nsq_addrs = 1; // nsq 服务地址
+  uint32 dial_timeout = 2; // 连接超时
+  uint32 read_timeout = 3; // 读超时
+  uint32 write_timeout = 4; // 写超时
+  uint32 batch_size = 5; // 一次性拉取的消息条书
+  uint32 heartbeat_interval = 6; // 一次性拉取的消息条书
+}

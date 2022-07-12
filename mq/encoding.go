@@ -3,7 +3,6 @@ package mq
 import (
 	"context"
 
-	messagev1 "github.com/Ccheers/kratos-mq/mq/message/v1"
 	"github.com/go-kratos/kratos/v2/encoding"
 	ejson "github.com/go-kratos/kratos/v2/encoding/json"
 	eproto "github.com/go-kratos/kratos/v2/encoding/proto"
@@ -36,7 +35,7 @@ func DefaultEncodeFunc(ctx context.Context, args interface{}) (Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	return messagev1.NewMessage(b, messagev1.WithMetadata(md)), nil
+	return NewMessage(b, MessageOptionWithMetadata(md)), nil
 }
 
 func DefaultDecodeFunc(ctx context.Context, message Message, args interface{}) error {

@@ -1,4 +1,4 @@
-package v1
+package mq
 
 import (
 	"errors"
@@ -6,28 +6,30 @@ import (
 	"hash/crc32"
 	"time"
 
-	"github.com/Ccheers/kratos-mq/mq"
+	messagev1 "github.com/Ccheers/kratos-mq/mq/message/v1"
 	"github.com/go-kratos/kratos/v2/metadata"
 	"google.golang.org/protobuf/proto"
 )
+
+type MessageV1 messagev1.Message
 
 var (
 	ErrMessageIsNil     = errors.New("message is nil show alloc memory")
 	ErrMessageIsInvalid = errors.New("message is invalid")
 )
 
-type MessageOption func(x *Message)
+type MessageOption func(x *MessageV1)
 
-func WithMetadata(md metadata.Metadata) MessageOption {
-	return func(x *Message) {
+func MessageOptionWithMetadata(md metadata.Metadata) MessageOption {
+	return func(x *MessageV1) {
 		x.Md = md
 	}
 }
 
-var _ mq.Message = (*Message)(nil)
+var _ Message = (*MessageV1)(nil)
 
-func NewMessage(payload mq.Payload, opts ...MessageOption) mq.Message {
-	m := &Message{Data: payload}
+func NewMessage(payload Payload, opts ...MessageOption) Message {
+	m := &MessageV1{Data: payload}
 	// 校验和计算
 	defer m.assignValidSum()
 	for _, opt := range opts {
@@ -40,8 +42,8 @@ func NewMessage(payload mq.Payload, opts ...MessageOption) mq.Message {
 	return m
 }
 
-func NewMessageFromByte(b []byte) (mq.Message, error) {
-	m := &Message{}
+func NewMessageFromByte(b []byte) (Message, error) {
+	m := &MessageV1{}
 	err := m.UnMarshal(b)
 	if err != nil {
 		return nil, err
@@ -49,23 +51,23 @@ func NewMessageFromByte(b []byte) (mq.Message, error) {
 	return m, nil
 }
 
-func (x *Message) Metadata() metadata.Metadata {
+func (x *MessageV1) Metadata() metadata.Metadata {
 	return x.Md
 }
 
-func (x *Message) Payload() mq.Payload {
+func (x *MessageV1) Payload() Payload {
 	return x.Data
 }
 
-func (x *Message) Err() error {
+func (x *MessageV1) Err() error {
 	return fmt.Errorf(x.Error)
 }
 
-func (x *Message) UniKey() string {
+func (x *MessageV1) UniKey() string {
 	return x.Key
 }
 
-func (x *Message) Check() error {
+func (x *MessageV1) Check() error {
 	vs := x.generateValidSum()
 	if x.ValidSum != vs {
 		return ErrMessageIsInvalid
@@ -73,33 +75,33 @@ func (x *Message) Check() error {
 	return nil
 }
 
-func (x *Message) Marshal() ([]byte, error) {
-	return proto.Marshal(x)
+func (x *MessageV1) Marshal() ([]byte, error) {
+	return proto.Marshal((*messagev1.Message)(x))
 }
 
-func (x *Message) UnMarshal(bytes []byte) error {
+func (x *MessageV1) UnMarshal(bytes []byte) error {
 	if x == nil {
 		return ErrMessageIsNil
 	}
-	return proto.Unmarshal(bytes, x)
+	return proto.Unmarshal(bytes, (*messagev1.Message)(x))
 }
 
 // ------------------------------ private ------------------------------
 
-func (x *Message) generateUniKey() string {
+func (x *MessageV1) generateUniKey() string {
 	b, _ := x.Marshal()
 	c32ID := crc32.ChecksumIEEE(b)
 	return fmt.Sprintf("%d-%d", time.Now().Unix(), c32ID)
 }
 
-func (x *Message) generateValidSum() uint32 {
+func (x *MessageV1) generateValidSum() uint32 {
 	m := *x
 	m.ValidSum = 0
 	b, _ := m.Marshal()
 	return crc32.ChecksumIEEE(b)
 }
 
-func (x *Message) assignValidSum() {
+func (x *MessageV1) assignValidSum() {
 	x.ValidSum = 0
 	x.ValidSum = x.generateValidSum()
 }

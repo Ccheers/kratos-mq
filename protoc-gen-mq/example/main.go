@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Ccheers/kratos-mq/mq"
-	"github.com/Ccheers/kratos-mq/protoc-gen-gin/example/api/product/app/ecode"
-	v1 "github.com/Ccheers/kratos-mq/protoc-gen-gin/example/api/product/app/v1"
+	"github.com/Ccheers/kratos-mq/protoc-gen-mq/example/api/product/app/ecode"
+	v1 "github.com/Ccheers/kratos-mq/protoc-gen-mq/example/api/product/app/v1"
 )
 
 type service struct{}

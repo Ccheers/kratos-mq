@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Ccheers/kratos-mq/internal/nsq/config"
 	"github.com/Ccheers/kratos-mq/mq"
-	messagev1 "github.com/Ccheers/kratos-mq/mq/message/v1"
+	"github.com/Ccheers/kratos-mq/mq_impl/nsq/config"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/nsqio/go-nsq"
 )
@@ -52,13 +51,9 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 	}
 	consumer.SetLoggerForLevel(x.logger, nsq.LogLevelInfo)
 
-	err = consumer.ConnectToNSQDs(x.nsqAddrs)
-	if err != nil {
-		return nil, err
-	}
 	ch := make(chan mq.Message, 1)
 	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-		msg, err := messagev1.NewMessageFromByte(message.Body)
+		msg, err := mq.NewMessageFromByte(message.Body)
 		if err != nil {
 			return err
 		}
@@ -66,6 +61,11 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 		message.Finish()
 		return nil
 	}))
+
+	err = consumer.ConnectToNSQDs(x.nsqAddrs)
+	if err != nil {
+		return nil, err
+	}
 
 	x.consumerMap[uniKey] = consumer
 	x.consumerChan[uniKey] = ch

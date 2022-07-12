@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/Ccheers/kratos-mq/protoc-gen-gin/example/api/product/app/v1";
+option go_package = "github.com/Ccheers/kratos-mq/protoc-gen-mq/example/api/product/app/v1";
 
 package product.app.v1;
 

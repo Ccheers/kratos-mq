@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package kratos_mq.internal.testdata.hello.v1;
+
+option go_package = "github.com/Ccheers/kratos-mq/mq_impl/testdata/hello/v1";
+
+service Hello {
+  // @mq: `topic:"tp1" channel:"ch1"`
+  rpc HelloWorld(HelloWorldRequest) returns (HelloWorldReply);
+}
+
+message HelloWorldRequest{
+  string msg = 1;
+}
+message HelloWorldReply{}

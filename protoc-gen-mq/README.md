@@ -1,4 +1,4 @@
-# protoc-gen-gin
+# protoc-gen-mq
 
 > 修改自 [kratos v2](https://github.com/go-kratos/kratos/tree/main/cmd/protoc-gen-go-http)
 
@@ -14,7 +14,7 @@
 注意由于使用 embed 特性，Go 版本必须大于 1.16
 
 ```bash
-go install github.com/Ccheers/kratos-mq/protoc-gen-gin@latest
+go install github.com/Ccheers/kratos-mq/protoc-gen-mq@latest
 ```
 
 ## 使用说明

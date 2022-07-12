@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/rand"
 
-	"github.com/Ccheers/kratos-mq/internal/nsq/config"
 	"github.com/Ccheers/kratos-mq/mq"
+	"github.com/Ccheers/kratos-mq/mq_impl/nsq/config"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/nsqio/go-nsq"
 )

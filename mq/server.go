@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/ccheers/xpkg/sync/routinepool"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
 )
 
 type serverOptions struct {
@@ -35,9 +37,19 @@ type Server struct {
 
 func NewServer(consumer Consumer, opts ...ServerOptionFunc) *Server {
 	options := &serverOptions{
-		timeout:    time.Second * 3,
-		decodeFunc: DefaultDecodeFunc,
-		errHandler: ErrorHandlerFunc(DefaultErrorHandler),
+		timeout:        time.Second * 3,
+		decodeFunc:     DefaultDecodeFunc,
+		errHandler:     ErrorHandlerFunc(DefaultErrorHandler),
+		cap:            4,
+		scaleThreshold: 4,
+		ms: []middleware.Middleware{
+			recovery.Recovery(
+				recovery.WithHandler(func(ctx context.Context, req, err interface{}) error {
+					log.Errorf("panic recover err=%v req=%+v", err, req)
+					return nil
+				}),
+			),
+		},
 	}
 	for _, f := range opts {
 		f(options)
@@ -46,7 +58,7 @@ func NewServer(consumer Consumer, opts ...ServerOptionFunc) *Server {
 		ScaleThreshold: options.scaleThreshold,
 	})
 	pool.SetPanicHandler(func(ctx context.Context, err error) {
-		options.errHandler(err)
+		options.errHandler.Handle(err)
 	})
 	return &Server{
 		consumer: consumer,
@@ -77,6 +89,7 @@ func (x *Server) Subscriber(ctx context.Context, topic string, channel string, h
 			for {
 				select {
 				case <-ctx.Done():
+					log.Warnf("routine exit context canceled topic=%s, channel=%s", topic, channel)
 					return
 				case msg = <-ch:
 					ctx, cancel := context.WithTimeout(ctx, x.options.timeout)

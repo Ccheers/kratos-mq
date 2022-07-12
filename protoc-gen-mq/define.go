@@ -45,7 +45,7 @@ func (m *method) HandlerName() string {
 }
 
 // matchMQReg 匹配 mq tag @mq: topic::channel
-var matchMQReg = regexp.MustCompile("@mq:`.+?`")
+var matchMQReg = regexp.MustCompile("@mq\\s*:\\s*`.+?`")
 
 var (
 	matchTopicReg   = regexp.MustCompile("topic\\s*:\\s*\"([\\w\\\\.]+)\"")
