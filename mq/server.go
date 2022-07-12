@@ -28,6 +28,9 @@ type serverOptions struct {
 }
 
 type Server struct {
+	ctx        context.Context
+	cancelFunc func()
+
 	consumer Consumer
 
 	options serverOptions
@@ -35,7 +38,7 @@ type Server struct {
 	pool routinepool.Pool
 }
 
-func NewServer(consumer Consumer, opts ...ServerOptionFunc) *Server {
+func NewServer(ctx context.Context, consumer Consumer, opts ...ServerOptionFunc) *Server {
 	options := &serverOptions{
 		timeout:        time.Second * 3,
 		decodeFunc:     DefaultDecodeFunc,
@@ -60,10 +63,13 @@ func NewServer(consumer Consumer, opts ...ServerOptionFunc) *Server {
 	pool.SetPanicHandler(func(ctx context.Context, err error) {
 		options.errHandler.Handle(err)
 	})
+	ctx, cancel := context.WithCancel(ctx)
 	return &Server{
-		consumer: consumer,
-		options:  *options,
-		pool:     pool,
+		ctx:        ctx,
+		cancelFunc: cancel,
+		consumer:   consumer,
+		options:    *options,
+		pool:       pool,
 	}
 }
 
@@ -77,13 +83,13 @@ type Handler interface {
 	Handle(ctx context.Context, message Message)
 }
 
-func (x *Server) Subscriber(ctx context.Context, topic string, channel string, handler Handler, ms ...middleware.Middleware) error {
-	ch, err := x.consumer.Subscribe(ctx, topic, channel)
+func (x *Server) Subscriber(topic string, channel string, handler Handler, ms ...middleware.Middleware) error {
+	ch, err := x.consumer.Subscribe(x.ctx, topic, channel)
 	if err != nil {
 		return err
 	}
 	for i := 0; i < int(x.options.cap); i++ {
-		_ctx := MiddlewareWithContext(ctx, append(x.options.ms, ms...)...)
+		_ctx := MiddlewareWithContext(x.ctx, append(x.options.ms, ms...)...)
 		x.pool.CtxGo(_ctx, func(ctx context.Context) {
 			var msg Message
 			for {
@@ -117,5 +123,6 @@ func (x *Server) Start(ctx context.Context) error {
 }
 
 func (x *Server) Stop(ctx context.Context) error {
+	x.cancelFunc()
 	return x.consumer.Close(ctx)
 }

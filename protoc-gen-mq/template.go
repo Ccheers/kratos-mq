@@ -89,10 +89,10 @@ func generateServerInterface(g *protogen.GeneratedFile, s *service) {
 
 // 生成注册函数
 func generateServerRegisterFunc(g *protogen.GeneratedFile, s *service) {
-	g.P("func Register", s.ServerInterfaceName(), "(ctx ", contextPkg.Ident("Context"), ", svr *", kMQPkg.Ident("Server"), ", srv ", s.ServerInterfaceName(), ") error {")
+	g.P("func Register", s.ServerInterfaceName(), "(svr *", kMQPkg.Ident("Server"), ", srv ", s.ServerInterfaceName(), ") error {")
 	g.P("var err error")
 	for _, m := range s.Methods {
-		g.P("\t", "err = svr.Subscriber(ctx, \"", m.Topic, "\", \"", m.Channel, "\", ", m.HandlerName(), "(svr,srv))")
+		g.P("\t", "err = svr.Subscriber(\"", m.Topic, "\", \"", m.Channel, "\", ", m.HandlerName(), "(svr, srv))")
 		{
 			g.P("if err != nil {")
 			g.P("return err")

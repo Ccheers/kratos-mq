@@ -17,9 +17,9 @@ type HelloMQServer interface {
 	MQ_HelloWorld(context.Context, *HelloWorldRequest) error
 }
 
-func RegisterHelloMQServer(ctx context.Context, svr *mq.Server, srv HelloMQServer) error {
+func RegisterHelloMQServer(svr *mq.Server, srv HelloMQServer) error {
 	var err error
-	err = svr.Subscriber(ctx, "tp1", "ch1", HelloWorld_0_MQHandler(svr, srv))
+	err = svr.Subscriber("tp1", "ch1", HelloWorld_0_MQHandler(svr, srv))
 	if err != nil {
 		return err
 	}

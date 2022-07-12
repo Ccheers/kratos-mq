@@ -17,13 +17,13 @@ type BlogServiceMQServer interface {
 	MQ_CreateArticle(context.Context, *Article) error
 }
 
-func RegisterBlogServiceMQServer(ctx context.Context, svr *mq.Server, srv BlogServiceMQServer) error {
+func RegisterBlogServiceMQServer(svr *mq.Server, srv BlogServiceMQServer) error {
 	var err error
-	err = svr.Subscriber(ctx, "tp1", "ch1", CreateArticle_0_MQHandler(svr, srv))
+	err = svr.Subscriber("tp1", "ch1", CreateArticle_0_MQHandler(svr, srv))
 	if err != nil {
 		return err
 	}
-	err = svr.Subscriber(ctx, "tp2", "ch2", CreateArticle_1_MQHandler(svr, srv))
+	err = svr.Subscriber("tp2", "ch2", CreateArticle_1_MQHandler(svr, srv))
 	if err != nil {
 		return err
 	}

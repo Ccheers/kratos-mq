@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	v1 "github.com/Ccheers/kratos-mq/internal/testdata/hello/v1"
 	"github.com/Ccheers/kratos-mq/mq"
 	"github.com/Ccheers/kratos-mq/mq_impl/nsq"
 	"github.com/Ccheers/kratos-mq/mq_impl/nsq/config"
-	v1 "github.com/Ccheers/kratos-mq/mq_impl/testdata/hello/v1"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -21,8 +21,7 @@ var nsqCfg = &config.Config{
 	HeartbeatInterval: 30,
 }
 
-type mockHelloMQServer struct {
-}
+type mockHelloMQServer struct{}
 
 func (x *mockHelloMQServer) MQ_HelloWorld(ctx context.Context, request *v1.HelloWorldRequest) error {
 	log.Info(request.Msg)
@@ -55,8 +54,8 @@ func TestNewServer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svr := mq.NewServer(tt.args.consumer, tt.args.opts...)
-			err = v1.RegisterHelloMQServer(tt.args.ctx, svr, &mockHelloMQServer{})
+			svr := mq.NewServer(tt.args.ctx, tt.args.consumer, tt.args.opts...)
+			err = v1.RegisterHelloMQServer(svr, &mockHelloMQServer{})
 			if err != nil && !tt.wantErr {
 				t.Fatal(err)
 			}
