@@ -5,52 +5,63 @@ option go_package = "github.com/Ccheers/kratos-mq/protoc-gen-mq/example/api/prod
 package product.app.v1;
 
 import "google/api/annotations.proto";
+import "proto/v1/options/annotations.proto";
 
 // blog service is a blog demo
 service BlogService {
-	// 获取文章列表
-	rpc GetArticles(GetArticlesReq) returns (GetArticlesResp) {
-		option (google.api.http) = {
-			get: "/v1/articles"
-			additional_bindings {
-				get: "/v1/author/{author_id}/articles"
-			}
-		};
-	}
-	// 创建文章
-	// @mq:`topic:"tp1" channel:"ch1"`
-	// @mq:`topic:"tp2" channel:"ch2"`
-	rpc CreateArticle(Article) returns (Article) {
-		option (google.api.http) = {
-			post: "/v1/author/{author_id}/articles"
-			body: "*"
-		};
-	}
+  // 获取文章列表
+  rpc GetArticles(GetArticlesReq) returns (GetArticlesResp) {
+    option (google.api.http) = {
+      get: "/v1/articles"
+      additional_bindings {
+        get: "/v1/author/{author_id}/articles"
+      }
+    };
+  }
+  // 创建文章
+  // @mq:`topic:"tp1" channel:"ch1"`
+  // @mq:`topic:"tp2" channel:"ch2"`
+  rpc CreateArticle(Article) returns (Article) {
+    option (google.api.http) = {
+      post: "/v1/author/{author_id}/articles"
+      body: "*"
+    };
+    option (kmq.v1.options.mq) = {
+      subscribes: {
+        topic: "tp1",
+        channel: "ch3",
+      },
+      subscribes: {
+        topic: "tp2",
+        channel: "ch2",
+      },
+    };
+  }
 }
 
 message GetArticlesReq {
-	// @inject_tag: form:"title"
-	string title = 1;
+  // @inject_tag: form:"title"
+  string title = 1;
 
-	// @inject_tag: form:"page"
-	int32 page = 2;
+  // @inject_tag: form:"page"
+  int32 page = 2;
 
-	// @inject_tag: form:"page_size"
-	int32 page_size = 3;
+  // @inject_tag: form:"page_size"
+  int32 page_size = 3;
 
-    // 作者名
-	// @inject_tag: form:"author_id" uri:"author_id"
-	int32 author_id = 4;
+  // 作者名
+  // @inject_tag: form:"author_id" uri:"author_id"
+  int32 author_id = 4;
 }
 
 message GetArticlesResp {
-	int64 total = 1;
-	repeated Article articles = 2;
+  int64 total = 1;
+  repeated Article articles = 2;
 }
 
 message Article {
-	string title  = 1;
-	string content = 2;
-	// @inject_tag: form:"author_id" uri:"author_id"
-	int32 author_id = 3;
+  string title = 1;
+  string content = 2;
+  // @inject_tag: form:"author_id" uri:"author_id"
+  int32 author_id = 3;
 }

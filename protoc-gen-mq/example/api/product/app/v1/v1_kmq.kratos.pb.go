@@ -19,7 +19,7 @@ type BlogServiceMQServer interface {
 
 func RegisterBlogServiceMQServer(svr *mq.Server, srv BlogServiceMQServer) error {
 	var err error
-	err = svr.Subscriber("tp1", "ch1", CreateArticle_0_MQHandler(svr, srv))
+	err = svr.Subscriber("tp1", "ch3", CreateArticle_0_MQHandler(svr, srv))
 	if err != nil {
 		return err
 	}

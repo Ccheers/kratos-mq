@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package kmq.v1.options;
+
+option go_package = "github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/v1/options";
+
+message MQ {
+  message Group {
+    string topic = 1;
+    string channel = 2;
+  }
+  repeated Group subscribes = 1;
+}

@@ -7,3 +7,9 @@ gen_example:
            --mq_out=paths=source_relative:. \
            example/api/product/app/v1/v1.proto
 	#protoc-go-inject-tag -input=./example/api/product/app/v1/v1.pb.go
+
+.PHONY: proto
+proto:
+	protoc -I . \
+			--go_out=paths=source_relative:. \
+			./proto/v1/options/*.proto

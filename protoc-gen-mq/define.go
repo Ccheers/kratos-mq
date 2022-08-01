@@ -3,10 +3,11 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"regexp"
 	"strings"
 
+	"github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/v1/options"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
 )
 
 type service struct {
@@ -44,23 +45,17 @@ func (m *method) HandlerName() string {
 	return fmt.Sprintf("%s_%d_MQHandler", m.Name, m.Num)
 }
 
-// matchMQReg 匹配 mq tag @mq: topic::channel
-var matchMQReg = regexp.MustCompile("@mq\\s*:\\s*`.+?`")
-
-var (
-	matchTopicReg   = regexp.MustCompile("topic\\s*:\\s*\"([\\w\\\\.]+)\"")
-	matchChannelReg = regexp.MustCompile("channel\\s*:\\s*\"([\\w\\\\.]+)\"")
-)
-
 func genMethod(m *protogen.Method, g *protogen.GeneratedFile) []*method {
 	var methods []*method
 
-	mqs := matchMQReg.FindAllString(m.Comments.Leading.String(), -1)
-	for _, str := range mqs {
-		topic := strings.TrimSpace(matchTopicReg.ReplaceAllString(matchTopicReg.FindString(str), "$1"))
-		channel := strings.TrimSpace(matchChannelReg.ReplaceAllString(matchChannelReg.FindString(str), "$1"))
-		methods = append(methods, buildMethodDesc(m, g, topic, channel))
+	mq, ok := proto.GetExtension(m.Desc.Options(), options.E_Mq).(*options.MQ)
+	if !ok {
+		return nil
 	}
+	for _, group := range mq.GetSubscribes() {
+		methods = append(methods, buildMethodDesc(m, g, group.GetTopic(), group.GetChannel()))
+	}
+
 	return methods
 }
 

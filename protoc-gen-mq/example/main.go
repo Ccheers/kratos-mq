@@ -42,7 +42,7 @@ func (s service) GetArticles(ctx context.Context, req *v1.GetArticlesReq) (*v1.G
 }
 
 func main() {
-	e := mq.NewServer(nil)
+	e := mq.NewServer(nil, nil)
 	v1.RegisterBlogServiceMQServer(e, &service{})
 	e.Start(context.Background())
 }
