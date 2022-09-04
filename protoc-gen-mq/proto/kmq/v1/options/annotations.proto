@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package kmq.v1.options;
 
-option go_package = "github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/v1/options;options";
+option go_package = "github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/kmq/v1/options;options";
 
 import "google/protobuf/descriptor.proto";
 import "kmq/v1/options/mq.proto";

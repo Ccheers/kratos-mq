@@ -20,7 +20,7 @@ var cfg = mqtt1.NewClientOptions().
 type mockHelloMQServer struct{}
 
 func (x *mockHelloMQServer) MQ_HelloWorld(ctx context.Context, request *v1.HelloWorldRequest) error {
-	log.Info("hello world", request.Msg)
+	log.Info("hello world ", request.Msg)
 	return nil
 }
 

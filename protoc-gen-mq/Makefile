@@ -1,6 +1,7 @@
 gen_example:
 	go install
 	protoc --proto_path=. \
+           --proto_path=./proto \
            --proto_path=./example/api \
            --go_out=paths=source_relative:. \
            --go-grpc_out=paths=source_relative:. \

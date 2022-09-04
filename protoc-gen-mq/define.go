@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/v1/options"
+	"github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/kmq/v1/options"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 )

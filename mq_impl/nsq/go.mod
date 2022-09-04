@@ -3,13 +3,14 @@ module github.com/Ccheers/kratos-mq/mq_impl/nsq
 go 1.17
 
 require (
-	github.com/Ccheers/kratos-mq v0.0.1
+	github.com/Ccheers/kratos-mq v0.0.0-00010101000000-000000000000
 	github.com/go-kratos/kratos/v2 v2.3.1
 	github.com/nsqio/go-nsq v1.1.0
 	google.golang.org/protobuf v1.28.0
 )
 
 require (
+	github.com/Ccheers/kratos-mq/protoc-gen-mq v0.0.0-00010101000000-000000000000 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/ccheers/xpkg v1.0.2 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
@@ -26,3 +27,5 @@ require (
 )
 
 replace github.com/Ccheers/kratos-mq => ../../
+
+replace github.com/Ccheers/kratos-mq/protoc-gen-mq => ../../protoc-gen-mq

@@ -7,7 +7,7 @@
 package v1
 
 import (
-	_ "github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/v1/options"
+	_ "github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/kmq/v1/options"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
