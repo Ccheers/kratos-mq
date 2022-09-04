@@ -4,9 +4,21 @@ package kratos_mq.internal.testdata.hello.v1;
 
 option go_package = "github.com/Ccheers/kratos-mq/mq_impl/testdata/hello/v1";
 
+import "kmq/v1/options/annotations.proto";
+
 service Hello {
-  // @mq: `topic:"tp1" channel:"ch1"`
-  rpc HelloWorld(HelloWorldRequest) returns (HelloWorldReply);
+  rpc HelloWorld(HelloWorldRequest) returns (HelloWorldReply) {
+    option (kmq.v1.options.mq) = {
+      subscribes: {
+        topic: "tp1"
+        channel: "ch1"
+      }
+      subscribes: {
+        topic: "tp2"
+        channel: "ch2"
+      }
+    };
+  };
 }
 
 message HelloWorldRequest{

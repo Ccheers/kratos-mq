@@ -10,6 +10,6 @@ gen_example:
 
 .PHONY: proto
 proto:
-	protoc -I . \
+	cd ./proto && protoc -I . \
 			--go_out=paths=source_relative:. \
-			./proto/v1/options/*.proto
+			./kmq/v1/options/*.proto

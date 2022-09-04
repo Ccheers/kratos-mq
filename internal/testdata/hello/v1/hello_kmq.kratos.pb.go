@@ -23,6 +23,10 @@ func RegisterHelloMQServer(svr *mq.Server, srv HelloMQServer) error {
 	if err != nil {
 		return err
 	}
+	err = svr.Subscriber("tp2", "ch2", HelloWorld_1_MQHandler(svr, srv))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func HelloWorld_0_MQHandler(svr *mq.Server, srv HelloMQServer) mq.HandleFunc {
@@ -60,9 +64,45 @@ func HelloWorld_0_MQHandler(svr *mq.Server, srv HelloMQServer) mq.HandleFunc {
 
 	}
 }
+func HelloWorld_1_MQHandler(svr *mq.Server, srv HelloMQServer) mq.HandleFunc {
+	return func(ctx context.Context, message mq.Message) {
+
+		var in HelloWorldRequest
+		var err error
+
+		err = svr.DecodeFunc()(ctx, message, &in)
+		if err != nil {
+			svr.ErrHandler().Handle(err)
+			return
+		}
+
+		md := metadata.New(nil)
+
+		for k, v := range message.Metadata() {
+			md.Set(k, v)
+		}
+
+		newCtx := metadata.NewServerContext(ctx, md)
+
+		ms := mq.GetMiddlewareFromContext(ctx)
+
+		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+			err := srv.MQ_HelloWorld(ctx, req.(*HelloWorldRequest))
+			return nil, err
+		}
+
+		_, err = middleware.Chain(ms...)(handler)(newCtx, &in)
+		if err != nil {
+			svr.ErrHandler().Handle(err)
+			return
+		}
+
+	}
+}
 
 type HelloMQClient interface {
 	HelloWorld_tp1(context.Context, *HelloWorldRequest) error
+	HelloWorld_tp2(context.Context, *HelloWorldRequest) error
 }
 type HelloMQClientImpl struct {
 	cc *mq.Client
@@ -73,4 +113,7 @@ func NewHelloMQClient(cc *mq.Client) HelloMQClient {
 }
 func (x *HelloMQClientImpl) HelloWorld_tp1(ctx context.Context, req *HelloWorldRequest) error {
 	return x.cc.Invoke(ctx, "tp1", req)
+}
+func (x *HelloMQClientImpl) HelloWorld_tp2(ctx context.Context, req *HelloWorldRequest) error {
+	return x.cc.Invoke(ctx, "tp2", req)
 }
