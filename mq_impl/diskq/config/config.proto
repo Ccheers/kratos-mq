@@ -1,0 +1,13 @@
+syntax = "proto3";
+package pkg.mq.nsq.config;
+
+option go_package = "github.com/Ccheers/kratos-mq/mq_impl/nsq/config;config";
+
+message Config {
+  string data_path = 1; // 文件地址地址
+  int64 max_bytes_per_file = 2; // 每个文件最大的大小
+  int32 min_msg_size = 3; // 最小消息大小
+  int32 max_msg_size = 4; // 最大消息大小
+  int64 sync_every = 5; // 每进行 N 次读写，刷一次盘 number of writes per fsync
+  int64 sync_timeout = 6; // 每过 N 毫秒(MS)读写，刷一次盘 duration of time per fsync
+}
