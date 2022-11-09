@@ -92,12 +92,17 @@ func (x *Server) Subscriber(topic string, channel string, handler Handler, ms ..
 		_ctx := MiddlewareWithContext(x.ctx, append(x.options.ms, ms...)...)
 		x.pool.CtxGo(_ctx, func(ctx context.Context) {
 			var msg Message
+			var ok bool
 			for {
 				select {
 				case <-ctx.Done():
 					log.Warnf("routine exit context canceled topic=%s, channel=%s", topic, channel)
 					return
-				case msg = <-ch:
+				case msg, ok = <-ch:
+					if !ok {
+						log.Warnf("channel closed topic=%s, channel=%s", topic, channel)
+						return
+					}
 					ctx, cancel := context.WithTimeout(ctx, x.options.timeout)
 					handler.Handle(ctx, msg)
 					cancel()
