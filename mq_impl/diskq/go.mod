@@ -3,7 +3,7 @@ module github.com/Ccheers/kratos-mq/mq_impl/diskq
 go 1.17
 
 require (
-	github.com/Ccheers/kratos-mq v0.0.0-00010101000000-000000000000
+	github.com/Ccheers/kratos-mq v0.0.7
 	github.com/ccheers/xpkg v1.0.2
 	github.com/go-kratos/kratos/v2 v2.5.2
 	github.com/nsqio/go-diskqueue v1.1.0
