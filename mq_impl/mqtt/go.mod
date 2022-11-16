@@ -3,7 +3,7 @@ module github.com/Ccheers/kratos-mq/mq_impl/mqtt
 go 1.17
 
 require (
-	github.com/Ccheers/kratos-mq v0.0.0-00010101000000-000000000000
+	github.com/Ccheers/kratos-mq v0.0.7
 	github.com/eclipse/paho.mqtt.golang v1.4.1
 	github.com/go-kratos/kratos/v2 v2.3.1
 )
