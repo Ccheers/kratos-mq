@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/Ccheers/kratos-mq/protoc-gen-mq/proto/kmq/v1/options"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -22,6 +24,9 @@ var methodSets = make(map[string]int)
 
 // generateFile generates a _gin.pb.go file.
 func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
+	if len(file.Services) == 0 || !hasKMQRule(file.Services) {
+		return nil
+	}
 	if len(file.Services) == 0 {
 		return nil
 	}
@@ -196,4 +201,19 @@ func generateClientMethodList(g *protogen.GeneratedFile, s *service) {
 		g.P("return x.cc.Invoke(ctx, \"", m.Topic, "\", req)")
 		g.P("}")
 	}
+}
+
+func hasKMQRule(services []*protogen.Service) bool {
+	for _, service := range services {
+		for _, method := range service.Methods {
+			if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
+				continue
+			}
+			rule, ok := proto.GetExtension(method.Desc.Options(), options.E_Mq).(*options.MQ)
+			if rule != nil && ok {
+				return true
+			}
+		}
+	}
+	return false
 }

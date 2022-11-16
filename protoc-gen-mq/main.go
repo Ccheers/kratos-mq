@@ -18,9 +18,8 @@ func main() {
 		return
 	}
 
-	var flags flag.FlagSet
 	options := protogen.Options{
-		ParamFunc: flags.Set,
+		ParamFunc: flag.CommandLine.Set,
 	}
 	options.Run(func(gen *protogen.Plugin) error {
 		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
