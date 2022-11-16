@@ -3,16 +3,16 @@ module github.com/Ccheers/kratos-mq/mq_impl/diskq
 go 1.17
 
 require (
-	github.com/Ccheers/kratos-mq v0.0.7
+	github.com/Ccheers/kratos-mq v0.0.8
 	github.com/ccheers/xpkg v1.0.2
-	github.com/go-kratos/kratos/v2 v2.5.2
+	github.com/go-kratos/kratos/v2 v2.5.3
 	github.com/nsqio/go-diskqueue v1.1.0
-	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
+	golang.org/x/sync v0.1.0
 	google.golang.org/protobuf v1.28.1
 )
 
 require (
-	github.com/Ccheers/kratos-mq/protoc-gen-mq v0.0.0-00010101000000-000000000000 // indirect
+	github.com/Ccheers/kratos-mq/protoc-gen-mq v0.0.0-20221116074043-758945a40c1e // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
