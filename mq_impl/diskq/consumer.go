@@ -56,14 +56,18 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 		ch := make(chan mq.Message, 1)
 		x.pool.Go(func(ctx context.Context) {
 			for {
-				if atomic.LoadUint32(&x.status) == statusClosed {
-					return
-				}
 				select {
 				case body := <-queue.ReadChan():
 					msg, err := mq.NewMessageFromByte(body)
 					if err != nil {
 						_ = x.logger.Log(log.LevelError, "module", "NewMessageFromByte", "err", err, "body", string(body))
+					}
+					if atomic.LoadUint32(&x.status) == statusClosed {
+						err = queue.Put(body)
+						if err != nil {
+							_ = x.logger.Log(log.LevelError, "module", "queue.Put", "err", err, "body", string(body))
+						}
+						return
 					}
 					ch <- msg
 				}
