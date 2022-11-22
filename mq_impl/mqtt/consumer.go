@@ -7,7 +7,6 @@ import (
 	"sync/atomic"
 
 	"github.com/Ccheers/kratos-mq/mq"
-	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -51,6 +50,9 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 
 	ch := make(chan mq.Message, 1)
 	token := x.client.Subscribe(topic, x.cfg.WillQos, func(client mqtt.Client, message mqtt.Message) {
+		if atomic.LoadUint32(&x.status) == statusClosed {
+			return
+		}
 		msg, err := mq.NewMessageFromByte(message.Payload())
 		if err != nil {
 			x.logger.Errorw("topic", topic, "channel", channel, "payload", string(message.Payload()), "err", err)

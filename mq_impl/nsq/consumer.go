@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/Ccheers/kratos-mq/mq"
 	"github.com/Ccheers/kratos-mq/mq_impl/nsq/config"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/nsqio/go-nsq"
 )
 
 var _ mq.Consumer = (*ConsumerImpl)(nil)
@@ -22,6 +22,8 @@ type ConsumerImpl struct {
 	mu           sync.Mutex
 	consumerMap  map[string]*nsq.Consumer
 	consumerChan map[string]chan mq.Message
+
+	status uint32
 }
 
 func NewConsumer(c *config.Config, logger log.Logger) (mq.Consumer, error) {
@@ -53,6 +55,9 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 
 	ch := make(chan mq.Message, 1)
 	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
+		if atomic.LoadUint32(&x.status) == statusClosed {
+			return nil
+		}
 		msg, err := mq.NewMessageFromByte(message.Body)
 		if err != nil {
 			return err
@@ -73,6 +78,9 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 }
 
 func (x *ConsumerImpl) Close(ctx context.Context) error {
+	if !atomic.CompareAndSwapUint32(&x.status, statusRunning, statusClosed) {
+		return nil
+	}
 	x.mu.Lock()
 	defer x.mu.Unlock()
 	for uniKey, consumer := range x.consumerMap {

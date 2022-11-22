@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Ccheers/kratos-mq/mq"
@@ -24,6 +25,8 @@ type ConsumerImpl struct {
 	sf           singleflight.Group
 	consumerChan map[string]chan mq.Message
 	pool         routinepool.Pool
+
+	status uint32
 }
 
 func NewConsumer(c *config.Config, logger log.Logger) (mq.Consumer, error) {
@@ -33,6 +36,7 @@ func NewConsumer(c *config.Config, logger log.Logger) (mq.Consumer, error) {
 		logger:       logger,
 		consumerChan: make(map[string]chan mq.Message),
 		pool:         routinepool.NewPool("[diskq][Consumer]", 4, routinepool.NewConfig()),
+		status:       statusRunning,
 	}, nil
 }
 
@@ -52,6 +56,9 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 		ch := make(chan mq.Message, 1)
 		x.pool.Go(func(ctx context.Context) {
 			for {
+				if atomic.LoadUint32(&x.status) == statusClosed {
+					return
+				}
 				select {
 				case body := <-queue.ReadChan():
 					msg, err := mq.NewMessageFromByte(body)
@@ -70,9 +77,12 @@ func (x *ConsumerImpl) Subscribe(ctx context.Context, topic string, channel stri
 }
 
 func (x *ConsumerImpl) Close(ctx context.Context) error {
+	if !atomic.CompareAndSwapUint32(&x.status, statusRunning, statusClosed) {
+		return nil
+	}
 	x.mu.Lock()
 	defer x.mu.Unlock()
-	for uniKey, _ := range x.consumerChan {
+	for uniKey := range x.consumerChan {
 		close(x.consumerChan[uniKey])
 	}
 	err := gDiskQueueManager.Close(ctx)
